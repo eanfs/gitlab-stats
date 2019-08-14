@@ -1,0 +1,35 @@
+﻿group,project,email,name,author_name,additions,deletions,total,commit_count
+oc-si,fengtian-jobs,long.liu@bespinglobal.cn,刘龙,刘龙,2867,0,2867,1
+oc-si,ikea-etl-miaozhen,zhiwu.ma@bespinglobal.cn,马治武,马治武,385,0,385,2
+PD/Private2.0/BP-MONITOR,bp-alert,cairong.li@bespinglobal.cn,李才荣,李才荣,11529,487,12016,19
+PD/Private2.0/BP-MONITOR,bp-alert,haiyang.dai@bespinglobal.cn,haiyang,haiyang,262,24,286,5
+PD/Private2.0/BP-MONITOR,bp-alert,xin.rao@bespinglobal.cn,xin.rao,xin.rao,818,141,959,9
+PD/Private2.0/BP-MONITOR,bp-alert,zhihao.lu@bespinglobal.cn,luzhihao,luzhihao,884,291,1175,6
+PD/Private2.0/BP-FRONT-END,fe-widget,shanshan.xu@bespinglobal.cn,xushanshan,xushanshan,9937,8464,18401,44
+PD/Private2.0/BP-FRONT-END,fe-widget,yuan.yang@bespinglobal.cn,yuan.yang@bespinglobal.cn,yuan.yang@bespinglobal.cn,129,75,204,6
+PD/Private2.0/BP-CMP,bp-cmp-sqlrecord,jianwei.xu@bespinglobal.cn,jianwei.xu,jianwei.xu,844,8,852,6
+PD/Private2.0/BP-CMP,bp-cmp-sqlrecord,shuai.hu@bespinglobal.cn,hushuai,hushuai,24315,5606,29921,27
+PD/Private2.0/BP-FRONT-END,fe-idc,qiuyue.luo@bespinglobal.cn,luoqiuyue,luoqiuyue,9743,7213,16956,78
+PD/Private2.0/BP-FRONT-END,fe-idc,haoran.li@bespinglobal.cn,lihaoran,lihaoran,816,240,1056,23
+PD/Private2.0/BP-FRONT-END,fe-idc,dong.li@bespinglobal.cn,dong.li,dong.li,2780,2702,5482,8
+oc-si/sunhongs-opsnow,bp-billing,vwater.wang@bespinglobal.cn,王永,王永,1738,40,1778,3
+PD/Private2.0/BP-NOTIFIER,bp-notifier,yewei.du@bespinglobal.cn,杜业伟,杜业伟,9503,223,9726,13
+PD/Private2.0/BP-IAM,CheckPoint,zhanjia.chen@bespinglobal.cn,zhanjia.chen,zhanjia.chen,51,44,95,2
+PD/Private2.0/BP-IAM,CheckPoint,xing.jin@bespinglobal.cn,xing.jin,xing.jin,135,46,181,10
+PD/Private2.0/BP-IAM,CheckPoint,jiashu.du@bespinglobal.cn,jiashu.du,jiashu.du,214,67,281,8
+PD/Private2.0/BP-IAM,CheckPoint,xuliang.zhang@bespinglobal.cn,张旭亮,张旭亮,118,47,165,3
+oc-si,wzu,xiyue.huang@bespinglobal.cn,xiyue.huang@bespinglobal.cn,xiyue.huang@bespinglobal.cn,55,160,215,3
+oc-si,wzu,lifeng.weng@bespinglobal.cn,翁励烽,翁励烽,10,3,13,1
+oc-si,wzu-webserver,wei.zhang@bespinglobal.cn,zhang wei,zhang wei,58,8,66,2
+oc-si,wzu-webserver,lan.liu@bespinglobal.cn,liulan,liulan,33,5,38,1
+PD/Private2.0/BP-BILLING,bp-billing,yue.zheng@bespinglobal.cn,郑岳,郑岳,3212,1237,4449,23
+PD/Private2.0/BP-BILLING,bp-billing,zhiqiang.qian@bespinglobal.cn,钱志强,钱志强,126,53,179,1
+PD/Private2.0/BP-BILLING,bp-billing,xiansheng.liu@bespinglobal.cn,xiansheng.liu,xiansheng.liu,1765,1001,2766,9
+PD/Private2.0/BP-BILLING,bp-billing,huichen.yu@bespinglobal.cn,huichen.yu@bespinglobal.cn,huichen.yu@bespinglobal.cn,736,0,736,2
+PD/Private2.0/BP-CMP,bp-cmp,jun.ma@bespinglobal.cn,jun.ma,jun.ma,12655,4004,16659,5
+PD/Private2.0/BP-CMP,bp-cmp,jin.yang@bespinglobal.cn,jin.yang,jin.yang,2537,444,2981,2
+PD/Private2.0/BP-CMP,bp-cmp,congli.wang@bespinglobal.cn,王聪丽,王聪丽,76,6,82,6
+PD/Private2.0/BP-CMP,bp-cmp,xin.ping@bespinglobal.cn,pingxin,pingxin,6948,2446,9394,6
+PD/Private2.0/BP-CMP,bp-cmp,ying.xue@bespinglobal.cn,ying.xue,ying.xue,12873,3668,16541,3
+PD/Private2.0/BP-CMDB,bp-cmdb,jian.yu@bespinglobal.cn,yu jian,yu jian,20,13,33,1
+PD/Private2.0/BP-FRONT-END,fe-Opsnow,yanfei.liu@bespinglobal.cn,liuyanfei,liuyanfei,129,101,230,7
