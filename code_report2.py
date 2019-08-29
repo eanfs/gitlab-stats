@@ -24,11 +24,53 @@ pre_date = "2019-07"
 #since_date = (cur_date - datetime.timedelta(days=2)).strftime("%Y-%m-%d 22:00:00")
 #until_date = (cur_date - datetime.timedelta(days=1)).strftime("%Y-%m-%d 22:00:00")
 #until_date = cur_date.strftime("%Y-%m-%d 22:00:00")
-since_date = "2019-08-10 00:00:00"
-until_date = "2019-08-15 00:00:00"
+since_date = "2019-08-15 00:00:00"
+until_date = "2019-08-22 00:00:00"
 project_result = {}
 #防重处理
 all_commits={}
+
+email_name={
+    "long.liu@bespinglobal.cn":"刘龙",
+    "zhiwu.ma@bespinglobal.cn":"马治武",
+    "cairong.li@bespinglobal.cn":"李才荣",
+    "haiyang.dai@bespinglobal.cn":"代海洋",
+    "xin.rao@bespinglobal.cn":"饶鑫",
+    "zhihao.lu@bespinglobal.cn":"鲁志豪",
+    "shanshan.xu@bespinglobal.cn":"许姗姗",
+    "yuan.yang@bespinglobal.cn":"杨原",
+    "jianwei.xu@bespinglobal.cn":"徐建伟",
+    "shuai.hu@bespinglobal.cn":"胡帅",
+    "qiuyue.luo@bespinglobal.cn":"罗秋悦",
+    "dong.li@bespinglobal.cn":"李东",
+    "vwater.wang@bespinglobal.cn":"王永",
+    "yewei.du@bespinglobal.cn":"杜业伟",
+    "zhanjia.chen@bespinglobal.cn":"陈展佳",
+    "xing.jin@bespinglobal.cn":"金星",
+    "jiashu.du@bespinglobal.cn":"杜嘉澍",
+    "xuliang.zhang@bespinglobal.cn":"张旭亮",
+    "xiyue.huang@bespinglobal.cn":"黄希悦",
+    "lifeng.weng@bespinglobal.cn":"翁励烽",
+    "wei.zhang@bespinglobal.cn":"张炜",
+    "yue.zheng@bespinglobal.cn":"郑岳",
+    "zhiqiang.qian@bespinglobal.cn":"钱志强",
+    "xiansheng.liu@bespinglobal.cn":"刘显胜",
+    "huichen.yu@bespinglobal.cn":"余慧晨",
+    "jun.ma@bespinglobal.cn":"马俊",
+    "jin.yang@bespinglobal.cn":"杨锦",
+    "congli.wang@bespinglobal.cn":"王聪丽",
+    "xin.ping@bespinglobal.cn":"平鑫",
+    "ying.xue@bespinglobal.cn":"薛莹",
+    "jian.yu@bespinglobal.cn":"喻建",
+    "yanfei.liu@bespinglobal.cn":"刘艳菲",
+    "chengyao.su@bespingloal.cn":"苏成尧",
+    "sun.zhang@bespinglobal.cn":"张笋",
+    "haoran.li@bespinglobal.cn":"李浩然",
+    "lan.liu@bespinglobal.cn":"刘兰",
+    "zhiyong.xu@bespinglobal.cn":"徐志勇",
+    "wyqbxzy@126.com":"徐志勇",
+    "yuchuan.wang@bespinglobal.cn":"王玉川"
+}
 
 def get_data(url):
     headers = {
@@ -57,7 +99,22 @@ def get_issue_by_projectid(project_id):
 
 # /projects/:id/repository/commits?ref_name=master&since=&until=
 def get_commits(project_id, project_name, branch_name, group_name):
-    url = "%s/projects/%s/repository/commits?per_page=2000&ref_name=%s&since=%s&until=%s&with_stats=yes" % (base_url, project_id, branch_name, since_date, until_date)
+
+    result = []
+
+    page = 1
+
+    commits = get_commits_page(project_id, project_name, branch_name, group_name, page)
+
+    while len(commits) > 0:
+        result.extend(commits)
+        page = page + 1
+        commits = get_commits_page(project_id, project_name, branch_name, group_name, page)
+
+    return result
+
+def get_commits_page(project_id, project_name, branch_name, group_name, page):
+    url = "%s/projects/%s/repository/commits?page=%s&per_page=100&ref_name=%s&since=%s&until=%s&with_stats=yes" % (base_url, project_id, page, branch_name, since_date, until_date)
     rs = get_data(url)
 
     commit_details = []
@@ -68,11 +125,16 @@ def get_commits(project_id, project_name, branch_name, group_name):
             continue
         all_commits[commit_id] = commit
         stats = commit['stats']
+
+        author_name = commit['author_name']
+        commiter_email = commit['committer_email']
+        if commiter_email in email_name:
+            author_name = email_name[commiter_email]
         commit_details.append({
                 'commit_id': commit_id,
                 'name': commit['committer_name'], 
                 'email': commit['committer_email'], 
-                'author_name': commit['author_name'],
+                'author_name': author_name,
                 'group': group_name,
                 'project':project_name, 
                 'branch': branch_name, 
@@ -85,13 +147,30 @@ def get_commits(project_id, project_name, branch_name, group_name):
 
 # /projects/:id/repository/branches/
 def get_branches(project_id):
-    url = "%s/projects/%s/repository/branches?per_page=2000" % (base_url, project_id)
+
+    page = 1
+
+    result = []
+
+    branches = get_branches_page(project_id, page)
+
+    while len(branches) > 0:
+        result.extend(branches)
+        page = page + 1
+        branches = get_branches_page(project_id, page)
+
+    return result
+
+def get_branches_page(project_id, page):
+    url = "%s/projects/%s/repository/branches?page=%s&per_page=100" % (base_url, project_id, page)
+    
     rs = get_data(url)
 
     result = []
     for branch in rs:
         branch_name = branch['name']
         result.append(branch_name)
+
     return result
 
 # /projects
@@ -114,7 +193,8 @@ def get_projects():
             "namespace": project['namespace']['full_path'],
             "branches": []
         }
-        if p['namespace'].startswith('PD/Private2.0') or p['namespace'].startswith('oc-si'):
+        if p['namespace'].startswith('PD/Private2.0') or p['namespace'].startswith('oc-si') or p['namespace'].startswith('PD/Private'):
+        # if p['namespace'].startswith('PD/Private2.0/BP-CMP'):
             projects.append(p)
         namespaces[p['namespace']] = {}
 
@@ -124,7 +204,7 @@ def get_projects():
     #         if p['namespace']['full_path'].startswith('PD/Private2.0/%s' % k):
     #             result[k].append({"id": p['id'], "name": p['name'], "ssh_url_to_repo": p['ssh_url_to_repo'], "branches": []})
     #             break
-    print(namespaces)
+    # print(namespaces)
     return projects
 
 def write_csv_obj(filename, headers, data_rows):
@@ -163,7 +243,7 @@ def main():
         project_name = p['name']
         branches = get_branches(project_id)
         p['branches'] = branches
-        print('2. 获取项目', project_name, '分支结束')
+        print('2. 获取项目', project_name, '分支结束', '分支数量：', len(branches))
         for b in branches:
             branch_commits = get_commits(project_id, project_name, b, p['namespace'])
             print('3. 获取项目', p['namespace'], '/', project_name, ' 分支：', b, '所有提交结束, len:', len(branch_commits))

@@ -1,23 +1,27 @@
 # encoding: utf8
 import os
-import sys
 import json
 import datetime
 import requests
 import smtplib
-import commands
+import csv
+import sys, getopt
 from email import encoders
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
-
-
 
 FROM_ADDR = 'pd.system@bespinglobal.cn'
 FROM_PASS = ''
 TO_ADDR = 'cairong.li@bespinglobal.cn'
 SMTP_SERVER = 'mail.bespinglobal.cn'
 SMTP_PORT = 587
+
+params = {
+    "token": '',
+    "since_date": '',
+    "until_date": ''
+}
 
 token = ""
 base_url = "https://git.opsnow.tech/api/v4"
@@ -27,13 +31,57 @@ pre_date = "2019-07"
 #since_date = (cur_date - datetime.timedelta(days=2)).strftime("%Y-%m-%d 22:00:00")
 #until_date = (cur_date - datetime.timedelta(days=1)).strftime("%Y-%m-%d 22:00:00")
 #until_date = cur_date.strftime("%Y-%m-%d 22:00:00")
-since_date = "2019-07-01 00:00:00"
-until_date = "2019-08-01 00:00:00"
+# since_date = "2019-08-08 00:00:00"
+# until_date = "2019-08-15 00:00:00"
 project_result = {}
+#防重处理
+all_commits={}
+
+email_name={
+    "long.liu@bespinglobal.cn":"刘龙",
+    "zhiwu.ma@bespinglobal.cn":"马治武",
+    "cairong.li@bespinglobal.cn":"李才荣",
+    "haiyang.dai@bespinglobal.cn":"代海洋",
+    "xin.rao@bespinglobal.cn":"饶鑫",
+    "zhihao.lu@bespinglobal.cn":"鲁志豪",
+    "shanshan.xu@bespinglobal.cn":"许姗姗",
+    "yuan.yang@bespinglobal.cn":"杨原",
+    "jianwei.xu@bespinglobal.cn":"徐建伟",
+    "shuai.hu@bespinglobal.cn":"胡帅",
+    "qiuyue.luo@bespinglobal.cn":"罗秋悦",
+    "dong.li@bespinglobal.cn":"李东",
+    "vwater.wang@bespinglobal.cn":"王永",
+    "yewei.du@bespinglobal.cn":"杜业伟",
+    "zhanjia.chen@bespinglobal.cn":"陈展佳",
+    "xing.jin@bespinglobal.cn":"金星",
+    "jiashu.du@bespinglobal.cn":"杜嘉澍",
+    "xuliang.zhang@bespinglobal.cn":"张旭亮",
+    "xiyue.huang@bespinglobal.cn":"黄希悦",
+    "lifeng.weng@bespinglobal.cn":"翁励烽",
+    "wei.zhang@bespinglobal.cn":"张炜",
+    "yue.zheng@bespinglobal.cn":"郑岳",
+    "zhiqiang.qian@bespinglobal.cn":"钱志强",
+    "xiansheng.liu@bespinglobal.cn":"刘显胜",
+    "huichen.yu@bespinglobal.cn":"余慧晨",
+    "jun.ma@bespinglobal.cn":"马俊",
+    "jin.yang@bespinglobal.cn":"杨锦",
+    "congli.wang@bespinglobal.cn":"王聪丽",
+    "xin.ping@bespinglobal.cn":"平鑫",
+    "ying.xue@bespinglobal.cn":"薛莹",
+    "jian.yu@bespinglobal.cn":"喻建",
+    "yanfei.liu@bespinglobal.cn":"刘艳菲",
+    "chengyao.su@bespingloal.cn":"苏成尧",
+    "sun.zhang@bespinglobal.cn":"张笋",
+    "haoran.li@bespinglobal.cn":"李浩然",
+    "lan.liu@bespinglobal.cn":"刘兰",
+    "zhiyong.xu@bespinglobal.cn":"徐志勇",
+    "wyqbxzy@126.com":"徐志勇"
+}
 
 def get_data(url):
+    print('token:', params)
     headers = {
-        "PRIVATE-TOKEN": token
+        "PRIVATE-TOKEN": params['token']
     }
 
     rs = []
@@ -42,12 +90,12 @@ def get_data(url):
         r = requests.get(url, headers=headers)
 
     except Exception as e:
-        print e
+        print(e)
 
     else:
         rs = r.json()
 
-        return rs
+    return rs
 
 
 #http://git.opsnow.tech/api/v4/groups/47/issues\?state\=opened
@@ -56,300 +104,195 @@ def get_issue_by_projectid(project_id):
     url = "%s/projects/%s/issues?per_page=2000" % (base_url, project_id)
     return get_data(url)
 
+# /projects/:id/repository/commits?ref_name=master&since=&until=
+def get_commits(project_id, project_name, branch_name, group_name):
+    url = "%s/projects/%s/repository/commits?per_page=2000&ref_name=%s&since=%s&until=%s&with_stats=yes" % (base_url, project_id, branch_name, params['since_date'], params['until_date'])
+    rs = get_data(url)
+
+    commit_details = []
+
+    for commit in rs:
+        commit_id = commit['id']
+        if commit_id in all_commits:
+            continue
+        all_commits[commit_id] = commit
+        stats = commit['stats']
+
+        author_name = commit['author_name']
+        commiter_email = commit['committer_email']
+        if commiter_email in email_name:
+            author_name = email_name[commiter_email]
+        commit_details.append({
+                'commit_id': commit_id,
+                'name': commit['committer_name'], 
+                'email': commit['committer_email'], 
+                'author_name': author_name,
+                'group': group_name,
+                'project':project_name, 
+                'branch': branch_name, 
+                'additions': stats['additions'], 
+                'deletions': stats['deletions'], 
+                'total': stats['total'],
+                'commit_count': 1
+                })
+    return commit_details
+
+# /projects/:id/repository/branches/
+def get_branches(project_id):
+    url = "%s/projects/%s/repository/branches?per_page=2000" % (base_url, project_id)
+    rs = get_data(url)
+
+    result = []
+    for branch in rs:
+        result.append(branch['name'])
+    return result
 
 # /projects
 def get_projects():
     url = "%s/projects?per_page=2000" % base_url
     rs = get_data(url)
 
-    result = {"BP-CMP": [], "BP-BILLING": [], "BP-MONITOR": [], "BP-AUTOMATE": [], "BP-FRONT-END": [], "BP-CMDB": [], "BP-TICKET": [], "BP-IAM": [], "BP-NOTIFIER": []}
-    for p in rs:
-        for k in result.keys():
-            if p['namespace']['full_path'].startswith('PD/Private2.0/%s' % k):
-                result[k].append({"id": p['id'], "name": p['name'], "ssh_url_to_repo": p['ssh_url_to_repo']})
-                break
+    print(rs)
 
-    return result
+    projects = []
 
+    full_paths = {}
 
-def get_project_code_count(project_name, name, path):
-    if os.path.exists(name):
-        a = os.system('cd %s;git pull' % name)
-        if a != 0:
-            os.system('rm -rf %s' % name)
-            a = os.system('git clone %s %s' % (path, name))
-
-    else:
-        a = os.system('git clone %s %s' % (path, name))
-
-    if a != 0:
-        print "git clone %s error" % path
-        return
-
-    a = os.system('cd %s;git checkout master;git pull origin master' % name)
-    if a != 0:
-        print "checkout master error for %s" % name
-        return
-
-    cmd = """cd %s;git log --since=="%s" --until=="%s" """ % (name, since_date, until_date)
-    cmd += """--format='%ae' --date=local | sort -u | while read name; do echo "$name:"; """
-    cmd += """git log --since=="%s" --until=="%s" """ % (since_date, until_date)
-    cmd += """ --date=local --author="$name" --pretty=tformat: --numstat | awk '{ add += $1; """
-    cmd += """subs += $2; loc += $1 - $2 } END { printf "%s:%s;", add, subs}' -; done"""
-
-    cmd2 = 'cd %s;' % name + 'git log --pretty=%ae '
-    cmd2 += '--since=="%s" --until=="%s" | sort | uniq -c | sort -k1 -n -r' % (since_date, until_date)
-
-    master_rs = os.popen(cmd).read()
-
-    rs = {}
-    subs_rs = {}
-    if master_rs.strip():
-        for i in master_rs.strip().strip(';').replace('\n', '').split(';'):
-            user, num, subs = i.split(':')
-            if num:
-                rs[user.split('@')[0]] = int(num)
-
-            if subs:
-                subs_rs[user.split('@')[0]] = int(subs)
-
-    master_commit_rs = os.popen(cmd2).read()
-
-    commit_rs = {}
-    if master_commit_rs:
-        print master_commit_rs
-        for i in master_commit_rs.strip().split('\n'):
-            print i
-            num, user = i.strip().split()
-            if num:
-                commit_rs[user.split('@')[0]] = int(num)
-
-    for b in ['dev', 'ocenter', 'alarm']:
-        a = os.system('cd %s;git checkout %s;git pull origin %s' % (name, b, b))
-        if a == 0:
-            dev_rs = os.popen(cmd).read()
-            if dev_rs.strip():
-                for i in dev_rs.strip().strip(';').replace('\n', '').split(';'):
-                    user, num, subs = i.split(':')
-                    u = user.split('@')[0]
-                    print user, num, subs
-                    if num:
-                        if u not in rs or rs[u] < int(num):
-                            rs[u] = int(num)
-
-                    if subs:
-                        if u not in subs_rs or subs_rs[u] < int(subs):
-                            subs_rs[u] = int(subs)
-
-            dev_commit_rs = os.popen(cmd2).read()
-            if dev_commit_rs.strip():
-                for i in dev_commit_rs.strip().split('\n'):
-                    num, user = i.strip().split()
-                    print "commit:", user, num
-                    if num:
-                        u = user.split('@')[0]
-                        if u not in commit_rs or commit_rs[u] < int(num):
-                            commit_rs[u] = int(num)
-
-
-    for k, v in rs.items():
-        if k in project_result[project_name]['members']:
-            project_result[project_name]['members'][k]['today_code_line'] += v
-
-    for k, v in subs_rs.items():
-        if k in project_result[project_name]['members']:
-            project_result[project_name]['members'][k]['today_subs_line'] += v
-
-    for k, v in commit_rs.items():
-        if k in project_result[project_name]['members']:
-            project_result[project_name]['members'][k]['today_commit'] += v
-
-
-def parse_issues(issues, project_name):
-    for issue in issues:
-        parse_issue(issue, project_name)
-
-
-def parse_issue(issue, project_name):
-    username = ""
-    if issue['assignee']:
-        username = issue['assignee']['username']
-        if project_name == 'BP-AUTOMATE' and username in ['cairong.li', 'zan.li', 'zhiqiang.qian']:
-            username = ""
-
+    for project in rs:
+        project_name = project['name']
+        project_full_path = project['namespace']['full_path']
+        full_paths[project_full_path] = {}
+        if project_full_path.startswith('PD/Private2.0') or project_full_path.startswith('oc-si') or project_full_path.startswith('PD/Private'):
+            print('开始获取项目:',project_full_path,'/',project_name,'分支')
+            branches = get_branches(project['id'])
+            print('获取项目:',project_full_path,'/',project_name,'分支结束，分支个数：',len(branches))
+            p = {
+                "id": project['id'],
+                "name": project['name'],
+                "path_with_namespace": project['path_with_namespace'],
+                "ssh_url_to_repo": project['ssh_url_to_repo'],
+                "http_url_to_repo": project['http_url_to_repo'],
+                "namespace": project['namespace']['full_path'],
+                "branches": branches
+            }
+            projects.append(p)
         else:
-            if username not in project_result[project_name]['members']:
-                project_result[project_name]['members'][username] = {
-                    "name": issue['assignee']['name'],
-                    "total": 0,
-                    "today_add_feat": 0,
-                    "today_add_bug": 0,
-                    "today_done": 0,
-                    "today_delay": 0,
-                    "today_code_line": 0,
-                    "today_subs_line": 0,
-                    "today_commit": 0
-                }
+            print('项目:', project_name, '不进行统计, 跳过')
 
-    if issue['state'] == "closed":
-        if not issue['closed_at'].startswith(pre_date):
-            return
+    # print(full_paths)
+    return projects
 
-        project_result[project_name]['today_done'] += 1
-        if username:
-            project_result[project_name]['members'][username]['today_done'] += 1
+def write_csv_obj(filename, headers, data_rows):
+    with open(filename, 'w', encoding='utf-8-sig') as f:
+        f_csv = csv.DictWriter(f, headers)
+        f_csv.writeheader()
+        f_csv.writerows(data_rows)
 
-    else:
-        project_result[project_name]['total'] += 1
-        if username:
-            project_result[project_name]['members'][username]['total'] += 1
+def write_csv_dict(filename, headers, data_dict):
+    with open(filename, 'w', encoding='utf-8-sig') as f:
+        f_csv = csv.DictWriter(f, headers)
+        f_csv.writeheader()
 
-        if issue['created_at'].startswith(pre_date):
-            if 'Bug' in issue['labels']:
-                project_result[project_name]['today_add_bug'] += 1
-                if username:
-                    project_result[project_name]['members'][username]['today_add_bug'] += 1
+        for k, v in data_dict.items():
+            f_csv.writerow(v)
+    
+def usage():
+    msg = "Usage: %s -t <token> -s <since_date> -u <until_date> [-h] or %s --token <token> --sincedate <since_date> --untildate <until_date> [--help]" % (sys.argv[0], sys.argv[0])
+    print(msg)
 
-            else:
-                project_result[project_name]['today_add_feat'] += 1
-                if username:
-                    project_result[project_name]['members'][username]['today_add_feat'] += 1
+def main(argv):
+    try:
+        opts, args = getopt.getopt(argv, "ht:s:u:", ["help", "token=", "sincedate=", "untildate="])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)
 
-        if issue['due_date'] and (cur_date - datetime.datetime.strptime(issue['due_date'], '%Y-%m-%d')).days > 1:
-            project_result[project_name]['today_delay'] += 1
-            if username:
-                project_result[project_name]['members'][username]['today_delay'] += 1
+    has_token = 0
+    has_since_date = 0
+    has_until_date = 0
+    for opt, arg in opts:
+        if opt in ('h', 'help'):
+            usage()
+            sys.exit()
+        elif opt in ("-t", "--token"):
+            params['token'] = arg
+            has_token = 1
+        elif opt in ("-s", "--sincedate"):
+            params['since_date'] = arg
+            has_since_date = 1
+        elif opt in ("-u", "--untildate"):
+            params['until_date'] = arg
+            has_until_date = 1
 
+    if has_token == 0 or has_since_date == 0 or has_until_date == 0:
+        usage()
+        sys.exit()
 
-def gen_html():
-    total = {
-        "total": 0,
-        "today_add_feat": 0,
-        "today_add_bug": 0,
-        "today_done": 0,
-        "today_delay": 0,
-        "today_code_line": 0,
-        "today_subs_line": 0,
-        "today_commit": 0
-    }
+    print(params)
+    stas()
 
-    project_fields = [u"项目名称", u"姓名", u"未完成任务总数", u"今日新增需求总数", u"今天新增Bug总数", u"今日完成任务总数",
-                      u"今日延期任务总数", u"今日代码新增总数", u"今日代码删除总数", u"今日代码提交次数"]
-    keys = ["total", "today_add_feat", "today_add_bug", "today_done", "today_delay",
-            "today_code_line", "today_subs_line", "today_commit"]
-    colors = ["blue", "green", "red", "blue", "red", "blue", "blue", "blue"]
+def stas():
+    projects = get_projects()
+    print('获取所有项目及其分支结束，共有项目个数：', len(projects))
 
-    html_title = u'<table border="1" bordercolor="#96beee" style="border-collapse:collapse;"><tr>'
-    for i in project_fields:
-        html_title += u'<th style="background-color:#c0d5f0">%s</th>' % i
-    html_title += u'</tr>'
+    project_headers = ["id","name","path_with_namespace","ssh_url_to_repo","http_url_to_repo","namespace","branches"]
+    write_csv_obj('./projects.csv', project_headers, projects)
 
-    html = u''
-    for k, v in sorted(project_result.items(), key=lambda item:item[0]):
-        html += u'<tr><th rowspan="%s">%s</th>' % (len(project_result[k]['members'].keys()) + 1, k)
-        html += u'<th>Total</th>'
+    print('1. 获取项目结束， 共有项目数量：', len(projects))
 
-        for i in range(len(keys)):
-            html += u'<th>%s</th>' % \
-                    ('<font style="color:%s">%s</font>' % (colors[i], v[keys[i]]) if v[keys[i]] > 0 else '')
-        html += u'</tr>'
+    return
 
-        for m, n in sorted(project_result[k]['members'].items(), key=lambda item:item[0]):
-            html += u'<tr><th>%s</th>' % (n['name'])
+    commits = []
 
-            for i in range(len(keys)):
-                html += u'<th>%s</th>' % \
-                        ('<font style="color:%s">%s</font>' % (colors[i], n[keys[i]]) if n[keys[i]] > 0 else '')
-            html += u'</tr>'
+    for p in projects:
+        project_id = p['id']
+        project_name = p['name']
+        for branch_name in p['branches']:
+            branch_commits = get_commits(project_id, project_name, branch_name, p['namespace'])
+            print('3. 获取项目', p['namespace'], '/', project_name, ' 分支：', branch_name, '所有提交结束, len:', len(branch_commits))
+            commits += branch_commits
+            print('total commits len:', len(commits))
 
-        for i in total.keys():
-            total[i] += v[i]
+    print('commits len:', len(commits))
+    return
 
-    html += u'</table>'
+    commit_details_headers = ['commit_id','name', 'email', 'author_name','group','project', 'branch', 'additions', 'deletions', 'total','commit_count']
+    # 保存提交日志明细到commit_details.csv文件
+    write_csv_obj('./commit_details.csv', commit_details_headers, commits)
 
-    html_total = u'<tr><th>总计</th><th></th>'
-    for i in range(len(keys)):
-        html_total += u'<th>%s</th>' % \
-                ('<font style="color:%s">%s</font>' % (colors[i], total[keys[i]]) if total[keys[i]] > 0 else '')
-    html_total += u'</tr>'
+    author_stats = {}
 
-    return html_title + html_total + html
+    print('4. 获取所有提交结束，开始进行统计')
+    for commit in commits:
+        author_name = commit['email']
+        if author_name in author_stats:
+            author_commit = author_stats[author_name]
+            author_commit['additions'] += commit['additions']
+            author_commit['deletions'] += commit['deletions']
+            author_commit['total'] += commit['total']
+            author_commit['commit_count'] += 1
+        else:
+            author_stats[author_name] = {
+                'name': commit['name'], 
+                'email': commit['email'], 
+                'author_name': commit['author_name'],
+                'group': commit['group'],
+                'project':commit['project'],
+                'additions': commit['additions'],
+                'deletions': commit['deletions'],
+                'total': commit['total'],
+                'commit_count': commit['commit_count']
+            }
 
+    # print(author_stats)
 
-def _format_addr(s):
-    name, addr = parseaddr(s)
-    return formataddr(( \
-        Header(name, 'utf-8').encode(), \
-        addr.encode('utf-8') if isinstance(addr, unicode) else addr))
+    commit_stats_headers = ["group", "project", "email", "name", 'author_name', "additions", "deletions", "total", "commit_count"]
+    write_csv_dict('./commit_stats.csv', commit_stats_headers, author_stats)
+    # write_csv_file(author_stats)
 
-def send_mail(text):
-
-    msg = MIMEText(u'<html><body>' +
-        u'%s' % text +
-        u'<br><hr><div style="color:silver;font-style:italic">此邮件由系统自动发送，请勿回复</div>'
-        u'</body></html>', 'html', 'utf-8')
-    msg['From'] = _format_addr(u'<%s>' % FROM_ADDR)
-    msg['To'] = _format_addr(u'<%s>' % TO_ADDR)
-    msg['Subject'] = Header(u'%s-研发工作量统计' % pre_date, 'utf-8').encode()
-
-    server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-    server.starttls()
-    # server.set_debuglevel(1)
-    server.login(FROM_ADDR, FROM_PASS)
-    server.sendmail(FROM_ADDR, [TO_ADDR], msg.as_string())
-    server.quit()
-
-def test_git_fame():
-    path = 'git@git.opsnow.tech:PD/Private2.0/BP-CMP/bp-cmp.git'
-    name = 'bp-cmp'
-
-    if os.path.exists(name):
-        a = os.system('cd %s;git pull' % name)
-        if a != 0:
-            os.system('rm -rf %s' % name)
-            a = os.system('git clone %s' % (path, name))
-
-    else:
-        a = os.system('git clone %s %s' % (path, name))
-
-    if a != 0:
-        print "git clone %s error" % path
-        return
-
-    a = os.system('cd %s;git checkout master;git pull origin master' % name)
-    if a != 0:
-        print "checkout master error for %s" % name
-        return
-    os.system('pwd')
-    branches = commands.getoutput("cd %s;git branch -a" % name)
-    print(branches)
-
-    for branch in branches.split("\n"):
-        print('branch:', branch)
-        if branch == '* master':
-            branch = 'master'
-        if branch.startswith('  remotes/origin/HEAD'):
-            continue
-        branch = branch.replace('  remotes/origin/', '', 1)
-        print('new branch:', branch)
-        a = os.system('cd %s;git checkout %s;git pull origin %s' % (name, branch, branch))
-        if a != 0:
-            print "checkout %s error for %s" % (branch, name)
-            break
-
-        result = commands.getoutput("cd %s;git fame --after=2019-08-07 --before=2019-08-08 ." % name)
-        print(result)
-        break
-
-    # a = os.system('cd %s;git branch -a' % name)
-    # if a != 0:
-    #     print "git branch -a error for %s" % name
-    #     return
-
-def main():
-    test_git_fame()
-
+    # for k, v in author_stats.items():
+    #     print('%s , %s, %s, %s, %s, %s, %s, %s' % (v['group'], v['email'], v['name'], v['author_name'], v['additions'], v['deletions'], v['total'], v['commit_count']))
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
     #print json.dumps(get_projects())
