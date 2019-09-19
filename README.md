@@ -3,11 +3,13 @@
 ## 获取token
 
 1. 登录gitlab, 使用一个权限大的账号；
-2. 点击右上解->Settings
+2. 点击右上角->Settings
 3. 左侧选择`AccessToken`, 输入token名称， 选择权限范围，这里我们勾选api:
-    [access-token](/imgs/gitlab_settings_token.jpg)
+
+    ![access-token](/imgs/gitlab_settings_token.jpg)
 4. 点击`Create personal access token` 按钮, 复制下来生成的个人账号访问token
-    [access-token2](/imgs/gitlab_settings_token2.jpg)
+
+    ![access-token2](/imgs/gitlab_settings_token2.jpg)
 
 ## 统计代码量
 
