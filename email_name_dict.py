@@ -36,5 +36,8 @@ email_name={
     "haoran.li@bespinglobal.cn":"李浩然",
     "lan.liu@bespinglobal.cn":"刘兰",
     "zhiyong.xu@bespinglobal.cn":"徐志勇",
-    "wyqbxzy@126.com":"徐志勇"
+    "wyqbxzy@126.com":"徐志勇",
+    "yuchuan.wang@bespinglobal.cn":"王玉川",
+    "chenglong.gong@bespinglobal.cn":"宫成龙",
+    "wenbin.zhou@bespinglobal.cn": "周文斌"
 }
