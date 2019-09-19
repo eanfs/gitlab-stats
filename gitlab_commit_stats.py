@@ -5,19 +5,23 @@ import datetime
 import requests
 import smtplib
 import csv
+import sys, getopt
 from email import encoders
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 
-token = "xAf2n2JZsT2YaYrz3qGC"
-base_url = "https://git.opsnow.tech/api/v4"
-cur_date = datetime.datetime.now()
-since_date = "2019-09-12 00:00:00"
-until_date = "2019-09-19 00:00:00"
 project_result = {}
 #防重处理
 all_commits={}
+
+# 参数
+params = {
+    "token": '', # token信息
+    "base_url": 'https://git.opsnow.tech/api/v4', #gitlab api访问url前缀， eg. https://gitlab.com/api/v4
+    "since_date": '', #统计开始日期， eg. 2019-09-05 00:00:00
+    "until_date": '' # 统计终止日期, eg. 2019-09-12 00:00:00
+}
 
 email_name={
     "long.liu@bespinglobal.cn":"刘龙",
@@ -65,7 +69,7 @@ email_name={
 
 def get_data(url):
     headers = {
-        "PRIVATE-TOKEN": token
+        "PRIVATE-TOKEN": params['token']
     }
 
     rs = []
@@ -85,7 +89,7 @@ def get_data(url):
 #http://git.opsnow.tech/api/v4/groups/47/issues\?state\=opened
 # /projects/:id/issues
 def get_issue_by_projectid(project_id):
-    url = "%s/projects/%s/issues?per_page=2000" % (base_url, project_id)
+    url = "%s/projects/%s/issues?per_page=2000" % (params['base_url'], project_id)
     return get_data(url)
 
 # /projects/:id/repository/commits?ref_name=master&since=&until=
@@ -105,7 +109,7 @@ def get_commits(project_id, project_name, branch_name, group_name):
     return result
 
 def get_commits_page(project_id, project_name, branch_name, group_name, page):
-    url = "%s/projects/%s/repository/commits?page=%s&per_page=100&ref_name=%s&since=%s&until=%s&with_stats=yes" % (base_url, project_id, page, branch_name, since_date, until_date)
+    url = "%s/projects/%s/repository/commits?page=%s&per_page=100&ref_name=%s&since=%s&until=%s&with_stats=yes" % (params['base_url'], project_id, page, branch_name, params['since_date'], params['until_date'])
     rs = get_data(url)
 
     commit_details = []
@@ -153,7 +157,7 @@ def get_branches(project_id):
     return result
 
 def get_branches_page(project_id, page):
-    url = "%s/projects/%s/repository/branches?page=%s&per_page=100" % (base_url, project_id, page)
+    url = "%s/projects/%s/repository/branches?page=%s&per_page=100" % (params['base_url'], project_id, page)
     
     rs = get_data(url)
 
@@ -166,7 +170,7 @@ def get_branches_page(project_id, page):
 
 # /projects
 def get_projects():
-    url = "%s/projects?per_page=2000" % base_url
+    url = "%s/projects?per_page=2000" % params['base_url']
     rs = get_data(url)
 
     projects = []
@@ -205,7 +209,8 @@ def write_csv_dict(filename, headers, data_dict):
             f_csv.writerow(v)
     
 
-def main():
+def stas():
+    print('sdfsdfsdfsdfsdf')
     projects = get_projects()
 
     project_headers = ["id",
@@ -269,6 +274,44 @@ def main():
     write_csv_dict('./commit_stats.csv', commit_stats_headers, author_stats)
     # write_csv_file(author_stats)
 
+def usage():
+    msg = "Usage: %s -t <token> -s <since_date> -u <until_date> -a <api_url> [-h] or %s --token <token> --sincedate <since_date> --untildate <until_date> --apiurl <api_url> [--help]" % (sys.argv[0], sys.argv[0])
+    print(msg)
+
+# 处理参数
+def main(argv):
+    try:
+        opts, args = getopt.getopt(argv, "ht:s:u:a:", ["help", "token=", "sincedate=", "untildate=", "apiurl="])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)
+
+    has_token = 0 # 是否传了token参数
+    has_since_date = 0 # 开始时间
+    has_until_date = 0 # 结束时间
+    for opt, arg in opts:
+        if opt in ('h', 'help'):
+            usage()
+            sys.exit()
+        elif opt in ("-t", "--token"):
+            params['token'] = arg
+            has_token = 1
+        elif opt in ("-s", "--sincedate"):
+            params['since_date'] = arg
+            has_since_date = 1
+        elif opt in ("a", "--apiurl"):
+            params['base_url'] = arg
+        elif opt in ("-u", "--untildate"):
+            params['until_date'] = arg
+            has_until_date = 1
+
+    if has_token == 0 or has_since_date == 0 or has_until_date == 0:
+        usage()
+        sys.exit()
+
+    print(params)
+    
+    stas()
+
 if __name__ == "__main__":
-    main()
-    #print json.dumps(get_projects())
+    main(sys.argv[1:])

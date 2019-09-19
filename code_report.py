@@ -18,13 +18,8 @@ SMTP_PORT = 587
 token = "xAf2n2JZsT2YaYrz3qGC"
 base_url = "https://git.opsnow.tech/api/v4"
 cur_date = datetime.datetime.now()
-#pre_date = (cur_date).strftime("%Y-%m-%d")
-pre_date = "2019-07"
-#since_date = (cur_date - datetime.timedelta(days=2)).strftime("%Y-%m-%d 22:00:00")
-#until_date = (cur_date - datetime.timedelta(days=1)).strftime("%Y-%m-%d 22:00:00")
-#until_date = cur_date.strftime("%Y-%m-%d 22:00:00")
-since_date = "2019-08-05 00:00:00"
-until_date = "2019-08-12 00:00:00"
+since_date = "2019-08-12 00:00:00"
+until_date = "2019-08-19 00:00:00"
 project_result = {}
 
 def get_data(url):
