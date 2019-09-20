@@ -146,8 +146,9 @@ def get_projects():
             "namespace": project['namespace']['full_path'],
             "branches": []
         }
-        if p['namespace'].startswith('PD/Private2.0') or p['namespace'].startswith('oc-si') or p['namespace'].startswith('PD/Private'):
-            projects.append(p)
+        # if p['namespace'].startswith('PD/Private2.0') or p['namespace'].startswith('oc-si') or p['namespace'].startswith('PD/Private'):
+            # projects.append(p)
+        projects.append(p)
         namespaces[p['namespace']] = {}
 
     return projects
