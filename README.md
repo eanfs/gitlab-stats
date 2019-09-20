@@ -1,5 +1,9 @@
 # gitlab代码统计
 
+## 环境
+
+* python3
+
 ## 获取token
 
 1. 登录gitlab, 使用一个权限大的账号；
@@ -12,6 +16,8 @@
     ![access-token2](/imgs/gitlab_settings_token2.jpg)
 
 ## 统计代码量
+
+##### Usage
 
 `gitlab_commit_stats.py`脚本为代码量统计脚本，使用语法：
 
